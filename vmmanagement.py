@@ -6,7 +6,7 @@ import os
 
 base_url = "http://127.0.0.1:8697"
 
-def get_virtual_machines(credentials: str) -> str:
+def get_virtual_machines(credentials: str) -> dict:
     headers = {
         "Accept" : "application/vnd.vmware.vmw.rest-v1+json",
         "Authorization" : "Basic " + credentials
@@ -21,7 +21,7 @@ def get_vm_id(name: str, credentials: str) -> str:
             return vm["id"]
     raise VMNotFound(name)
 
-def clone_vm(name: str, parent_id: str, credentials: str) -> str:
+def clone_vm(name: str, parent_id: str, credentials: str) -> dict:
     headers = {
       "Content-Type" : "application/vnd.vmware.vmw.rest-v1+json",
       "Accept" : "application/vnd.vmware.vmw.rest-v1+json",
