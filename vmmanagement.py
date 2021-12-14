@@ -14,6 +14,12 @@ def get_virtual_machines(credentials: str) -> dict:
     res = requests.get(f"{BASE_URL}/vms", headers=headers)
     return json.loads(res.text)
 
+def get_vm_path(id: str, credentials: str) -> str:
+    for vm in get_virtual_machines(credentials):
+        if vm["id"] == id:
+            return vm["path"]
+    raise VMNotFound
+
 def get_vm_id(name: str, credentials: str) -> str:
     for vm in get_virtual_machines(credentials):
         base = os.path.basename(vm["path"])

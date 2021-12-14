@@ -16,23 +16,26 @@ def get_option(option: str, file: str):
         raise OptionNotFound(option)
 
 def set_option(option: str, value: str, filename: str):
-    regex = option.replace(".", "\\.") + '\\s*=\\s*\\".+\\"'
+    regex = option.replace(".", "\\.") + '\\s*=\\s*\\".*\\"'
     pattern = re.compile(regex)
-
+    option_set = False
     try:
         with fileinput.FileInput(filename, inplace=True) as file:
             for line in file:
                 if pattern.match(line) != None:
                     print(f'{option} = "{value}"')
+                    option_set = True
                 else:
                     print(line, end = "")
     except:
         raise
+    if not option_set:
+        raise OptionNotFound(option)
 
 def add_option(option: str, value: str, filename: str):
     try:
         with open(filename, "a") as file:
-            file.write(f'{option} = "{value}"')
+            file.write(f'\n{option} = "{value}"')
     except:
         raise
 

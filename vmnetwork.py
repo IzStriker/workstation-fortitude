@@ -1,7 +1,7 @@
 import requests
 import json
 import os
-from workstationfortitude import BASE_URL, configutils
+from workstationfortitude import BASE_URL, configutils, vmmanagement
 
 from workstationfortitude.nointerfacesrequired import NoInterfacesRequired
 from workstationfortitude.interfacecreationexception import InterfaceCreationException
@@ -28,17 +28,30 @@ def add_interfaces(vm_id: str, num_interfaces: int, credentials: str) -> int:
             raise InterfaceCreationException(res.text)
     return num_interfaces
 
-def get_lan_segments(interfaces: list):
+def get_lan_segments():
     lan_segments = {}
 
-
-    for interface in interfaces:
-        if(interface['type'] == 'lan'):
-            lan_segments[interface['name']] = configutils.get_option("pref.namedPVNs\\d.pvnID", os.environ.get('appdata') + "\VMware\preferences.ini")
+    try:
+        i = 0
+        while True:
+            name = configutils.get_option(f"pref.namedPVNs{i}.name", os.environ.get('appdata') + "\VMware\preferences.ini")
+            lan_segments[name] = configutils.get_option(f"pref.namedPVNs{i}.pvnID", os.environ.get('appdata') + "\VMware\preferences.ini")
+            i += 1
+    except:
+        pass    
     
     return lan_segments
 
-def configure_interface_type(interfaces: list):
-    print(get_lan_segments(interfaces))
-    # Check all lan segements exist 
-    # If interface face type isn't nat convert to lan segment
+def configure_interface_type(interfaces: list, vm_id: str, credentials: str):
+    lan_segments = get_lan_segments()
+    
+    vm_path = vmmanagement.get_vm_path(vm_id, credentials)
+    i = 0
+    for interface in interfaces:
+        if interface['type'] == "lan":
+            configutils.set_option(f"ethernet{i}.connectionType", "pvn", vm_path)
+            try:
+                configutils.set_option(f"ethernet{i}.pvnID", lan_segments[interface['name']], vm_path)
+            except:
+                configutils.add_option(f"ethernet{i}.pvnID", lan_segments[interface['name']], vm_path)
+        i += 1
