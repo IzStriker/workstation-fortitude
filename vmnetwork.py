@@ -1,6 +1,7 @@
 import requests
 import json
-from workstationfortitude import BASE_URL
+import os
+from workstationfortitude import BASE_URL, configutils
 
 from workstationfortitude.nointerfacesrequired import NoInterfacesRequired
 from workstationfortitude.interfacecreationexception import InterfaceCreationException
@@ -26,3 +27,18 @@ def add_interfaces(vm_id: str, num_interfaces: int, credentials: str) -> int:
         if res.status_code != 201:
             raise InterfaceCreationException(res.text)
     return num_interfaces
+
+def get_lan_segments(interfaces: list):
+    lan_segments = {}
+
+
+    for interface in interfaces:
+        if(interface['type'] == 'lan'):
+            lan_segments[interface['name']] = configutils.get_option("pref.namedPVNs\\d.pvnID", os.environ.get('appdata') + "\VMware\preferences.ini")
+    
+    return lan_segments
+
+def configure_interface_type(interfaces: list):
+    print(get_lan_segments(interfaces))
+    # Check all lan segements exist 
+    # If interface face type isn't nat convert to lan segment
